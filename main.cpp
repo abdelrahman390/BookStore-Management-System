@@ -47,7 +47,7 @@ class ShippingService:
     pair<Book*, int> order; // <Book ptr, quantity>
 
 class PhysicalShippingService -> ShippingService:
-    str addres
+    str address
 
 class MailService -> ShippingService:
     str email
@@ -174,13 +174,13 @@ class ShippingService{
 };
 
 class PhysicalShippingService: public ShippingService{
-    string addres;
+    string address;
     PhysicalBook * book;
     public:
-        PhysicalShippingService(PhysicalBook * book, int _totalPrice, string _date, string _addres): ShippingService(_totalPrice, _date) {
-            addres = _addres;
+        PhysicalShippingService(PhysicalBook * book, int _totalPrice, string _date, string _address): ShippingService(_totalPrice, _date) {
+            address = _address;
             cout << "--- Physical Books Shipping service ---" << "\n";
-            cout << "Book: " << book->getTitle() << " Will send to: " << _addres << endl;
+            cout << "Book: " << book->getTitle() << " Will send to: " << _address << endl;
             cout << "Total Price: " << _totalPrice << endl << endl;
         };
 };
@@ -227,9 +227,9 @@ class BooksStore{
             return ptr;
         }
 
-        void handleShipping(Book* product, string type, float totalPrice ,string email ,string address){
+        void handleShipping(Book* product, string type, float totalPrice ,string email ,string addresss){
             if(type == "Paper"){
-                PhysicalShippingService *ShipService = new PhysicalShippingService(dynamic_cast<PaperBook *>(product), totalPrice, "15/8/2025", address);
+                PhysicalShippingService *ShipService = new PhysicalShippingService(dynamic_cast<PaperBook *>(product), totalPrice, "15/8/2025", addresss);
                 orders.push_back(ShipService);
             } else if(type == "E") {
                 MailService *ShipService = new MailService(dynamic_cast<EBook *>(product), totalPrice, "15/8/2025", email);
@@ -239,7 +239,7 @@ class BooksStore{
             }
         }
 
-        float buy(int ispn, int  quantity, string email, string address){
+        float buy(int ispn, int  quantity, string email, string addresss){
             for(auto& b: books){
                 if(ispn == b->getIspn()){
                     string type = b->getType();
@@ -248,7 +248,7 @@ class BooksStore{
                         if(book->isAvailable(quantity)){
                             book->removeSalledQnt(quantity);
                             float totalPrice = book->getPrice() * quantity;
-                            handleShipping(book, type, totalPrice,email, address);
+                            handleShipping(book, type, totalPrice,email, addresss);
                             return totalPrice;
                         } else {
                             throw invalid_argument("The book is not available.");
@@ -256,7 +256,7 @@ class BooksStore{
                     } else if(type == "E"){
                         EBook *book = dynamic_cast<EBook *>(b);
                         float totalPrice = book->getPrice();
-                        handleShipping(book, type, totalPrice, email, address);
+                        handleShipping(book, type, totalPrice, email, addresss);
                         return totalPrice;
                     } else if(type == "Demo"){
                         throw invalid_argument("This Book not for sale.");
