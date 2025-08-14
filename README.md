@@ -1,11 +1,13 @@
 ## Books object-oriented bookstore hierarchy:
-                            ┌────────────────────┐
-                            │      Book          │ (abstract)
-                            │- ispn              │
-                            │- title             │
-                            │- publishYear       │
-                            │+ getType() = 0     │
-                            └────────┬───────────┘
+                            ┌────────────────────────┐
+                            │      Book              │ (abstract)
+                            │- ispn                  │
+                            │- title                 │
+                            │- publishYear           │
+                            │+ virtual getType() = 0 │
+                            │+ getTitle()            │
+                            │+ getIspn()             │
+                            └────────┬───────────────┘
                                      │
                       ┌──────────────┼─────────────────────┐
                       │              │   (abstract)        │
@@ -42,13 +44,10 @@
                         ┌─────────────────────────┐
                         │       BookStore         │
                         │- books                  │
-                        │- shippingService        │
                         │+ addBook()              │
                         │+ removeBookByIspn()     │
                         │+ listAllBooks()         │
-                        │+ findBookByIspn()       │
                         │+ purchaseBook()         │
-                        │+ setShippingService()   │
                         └─────────────────────────┘
 
 ```cpp
@@ -61,44 +60,32 @@ class Book(abstract):
     title: str
     publishYear: int
 
-    getIspn() -> int
-    getTitle() -> str
-    getPublishYear() -> int
-    returnOutdatedBooks(int years) -> bool
-
+    getIspn()
+    getTitle()
+    virtual getType()
 
 class ForSaleBook(abstract):
     price: float
-
-    getPrice() -> float
-    setPrice(float newPrice)
-
+    getPrice()
 
 class PhysicalBook(abstract):
     stock: int
 
     getStock() -> int
-    setStock(int newStock)
     decreaseStock(int amount)
-    increaseStock(int amount)
-
 
 class PaperBook -> Book, ForSaleBook, PhysicalBook:
     # Inherits all attributes & methods
     pass
 
-
 class EBook -> Book, ForSaleBook:
     fileType: str
 
     getFileType() -> str
-    setFileType(str newType)
-
 
 class DemoBook -> Book:
     # Inherits base Book behavior
     pass
-
 
 # ------------------------------
 # SHIPPING SERVICE HIERARCHY
@@ -109,16 +96,13 @@ class ShippingService(abstract):
     date: string 
     pair<Book*, int> order; // <Book ptr, quantity>
 
-
 class PostalService -> ShippingService:
     address: string 
     PhysicalBook * book
 
-
 class EmailService -> ShippingService:
     email: string 
     EBook * book
-
 
 # ------------------------------
 # SHOP / STORE MANAGEMENT
@@ -134,4 +118,3 @@ class BookStore:
     removeBookByIspn(int ispn)
     viewBooks()
     purchaseBook(int ispn, str customerName)
-    handleShipping()
