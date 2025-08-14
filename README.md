@@ -118,3 +118,22 @@ class BookStore:
     removeBookByIspn(int ispn)
     viewBooks()
     purchaseBook(int ispn, str customerName)
+```
+
+## Example of how to use the project:
+```cpp
+int main() {
+    BooksStore store;
+
+    PaperBook* HarryPotter = store.addPaperBook("Harry Potter", 2001, 50, 20); // ispn = 1
+    EBook* LearnCpp = store.addEBook("Learn C++", 2024, 40, "pdf"); // ispn = 2
+    DemoBook* Salad = store.addDemoBook("how to cook Salad", 2001); // ispn = 3
+
+    store.buy(1, 2, "test@gmail", "cairo");
+    store.buy(2, 2, "test1@gmail", "Giza");
+
+    store.viewBooks();
+    store.removeBook(1);
+    // cout << store.buy(3, 2, "test@gmail", "cairo") << endl; // Error: This Book not for sale
+}
+```
