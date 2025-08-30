@@ -4,61 +4,72 @@
 #include <vector>
 #include <stdexcept>
 #include <any>
+#include <map>
+#include <queue>
 
 using namespace std;
 
 /*
-All instance:
-    ispn: int
-    Title: str
-    PublishYear: int
-    stock: int
-    price: float
-    FileType: str
+==================== Documentation ====================
 
-class Book(abstract):
-    ispn: int
-    Title: str
-    PublishYear: int
+Entities & Attributes
+--------------------------------------------------------
+Book (abstract):
+    - ispn: int
+    - title: string
+    - publishYear: int
+    + returnOutdatedBooks(int years): void
+    + getIspn(): int
+    + getTitle(): string
+    + getType(): string (abstract)
 
-    returnOutdatedBooks(int years)
+ForSaleBook (abstract):
+    - price: float
+    + getPrice(): float
 
-class ForSaleBook(abstract):
-    price: float
+PhysicalBook (abstract, extends Book):
+    - stock: int
+    + isAvailable(int quantity): bool
+    + removeSalledQnt(int qnt): void
+    + getStock(): int
 
-class PhysicalBook(abstract):
-    stock: int
+PaperBook (concrete, extends Book, ForSaleBook, PhysicalBook):
+    + getType(): string ("Paper")
 
-class PaperBook -> Book, -> ForSaleBook, -> PhysicalBook:
-    pass
+EBook (concrete, extends Book, ForSaleBook):
+    - fileType: string
+    + getType(): string ("E")
 
-class EBook -> Book, -> ForSaleBook:
-    FileType: str
-
-class DemoBook -> Book:
-    pass
+DemoBook (concrete, extends Book):
+    + getType(): string ("Demo")
 
 
-class ShippingService:
-    int shipId;
-    int totalPrice;
-    str date;
+ShippingService (abstract):
+    - totalPrice: int
+    - date: string
+    - order: pair<Book*, int>
 
-    pair<Book*, int> order; // <Book ptr, quantity>
+PhysicalShippingService (extends ShippingService):
+    - address: string
 
-class PhysicalShippingService -> ShippingService:
-    str address
+MailService (extends ShippingService):
+    - email: string
 
-class MailService -> ShippingService:
-    str email
 
-class BooksStore:
-    container<Book*> books;
-    container<ShippingService*> orders;
-
-    buy(int ispn, int  quantity, str email)
-
+BooksStore:
+    - books: map<int, Book*>
+    - orders: queue<ShippingService*>
+    - _ispn: int (auto-increment for books)
+    + addPaperBook(string title, int publishYear, float price, int stock): PaperBook*
+    + addEBook(string title, int publishYear, float price, string fileType): EBook*
+    + addDemoBook(string title, int publishYear): DemoBook*
+    + buy(int ispn, int quantity, string email, string address): float
+    + handleShipping(Book* product, string type, float totalPrice, string email, string address): void
+    + viewBooks(): void
+    + removeBook(int ispn): void
+========================================================
 */
+
 
 
 // Abstract
@@ -120,7 +131,7 @@ class PhysicalBook: public virtual Book{
             if(qnt <= stock){
                 stock -= qnt;
             } else {
-                throw invalid_argument("this quntity is not available");
+                throw invalid_argument("this quantity is not available");
             }
         }
 
@@ -159,6 +170,7 @@ class DemoBook: public Book{
     }
 };
 
+// ---------------------- Shipping Services ----------------------
 class ShippingService{
     protected:
         int totalPrice;
@@ -201,88 +213,82 @@ public:
 
 class BooksStore{
     int _ispn = 1;
-    int shipId = 1;
-    vector<Book*> books;
-    vector<ShippingService*> orders;
+    map<int, Book*> books;
+    queue<ShippingService*> orders;
 
     public:
         PaperBook* addPaperBook(string _title, int _publishYear, float _price, int _stock){
             PaperBook *ptr = NULL;
-            ptr = new PaperBook(_ispn++, _title, _publishYear, _price, _stock);
-            books.push_back(ptr);
+            int tempIspn = _ispn++;
+            ptr = new PaperBook(tempIspn, _title, _publishYear, _price, _stock);
+            books[tempIspn] = ptr;
             return ptr;
         }
 
         EBook* addEBook(string _title, int _publishYear, float _price, string _fileType){
             EBook *ptr = NULL;
-            ptr = new EBook(_ispn++, _title, _publishYear, _price, _fileType);
-            books.push_back(ptr);
+            int tempIspn = _ispn++;
+            ptr = new EBook(tempIspn, _title, _publishYear, _price, _fileType);
+            books[tempIspn] = ptr;
             return ptr;
         }
 
         DemoBook* addDemoBook(string _title, int _publishYear){
             DemoBook *ptr = NULL;
-            ptr = new DemoBook(_ispn++, _title, _publishYear);
-            books.push_back(ptr);
+            int tempIspn = _ispn++;
+            ptr = new DemoBook(tempIspn, _title, _publishYear);
+            books[tempIspn] = ptr;
             return ptr;
         }
 
-        void handleShipping(Book* product, string type, float totalPrice ,string email ,string addresss){
+        void handleShipping(Book* product, string type, float totalPrice ,string email , string addresss){
             if(type == "Paper"){
                 PhysicalShippingService *ShipService = new PhysicalShippingService(dynamic_cast<PaperBook *>(product), totalPrice, "15/8/2025", addresss);
-                orders.push_back(ShipService);
+                orders.push(ShipService);
             } else if(type == "E") {
                 MailService *ShipService = new MailService(dynamic_cast<EBook *>(product), totalPrice, "15/8/2025", email);
-                orders.push_back(ShipService);
+                orders.push(ShipService);
             } else {
                 throw invalid_argument("Invaled book book for shepping.");
             }
         }
 
         float buy(int ispn, int  quantity, string email, string addresss){
-            for(auto& b: books){
-                if(ispn == b->getIspn()){
-                    string type = b->getType();
-                    if(type == "Paper"){
-                        PaperBook *book = dynamic_cast<PaperBook *>(b);
-                        if(book->isAvailable(quantity)){
-                            book->removeSalledQnt(quantity);
-                            float totalPrice = book->getPrice() * quantity;
-                            handleShipping(book, type, totalPrice,email, addresss);
-                            return totalPrice;
-                        } else {
-                            throw invalid_argument("The book is not available.");
-                        }
-                    } else if(type == "E"){
-                        EBook *book = dynamic_cast<EBook *>(b);
-                        float totalPrice = book->getPrice();
-                        handleShipping(book, type, totalPrice, email, addresss);
-                        return totalPrice;
-                    } else if(type == "Demo"){
-                        throw invalid_argument("This Book not for sale.");
-                    }
+            string type = books[ispn]->getType();
+            if(type == "Paper"){
+                PaperBook *book = dynamic_cast<PaperBook *>(books[ispn]);
+                if(book->isAvailable(quantity)){
+                    book->removeSalledQnt(quantity);
+                    float totalPrice = book->getPrice() * quantity;
+                    handleShipping(book, type, totalPrice, email, addresss);
+                    return totalPrice;
+                } else {
+                    throw invalid_argument("The book is not available.");
                 }
+            } else if(type == "E"){
+                EBook *book = dynamic_cast<EBook *>(books[ispn]);
+                float totalPrice = book->getPrice();
+                handleShipping(book, type, totalPrice, email, addresss);
+                return totalPrice;
+            } else if(type == "Demo"){
+                throw invalid_argument("This Book not for sale.");
             }
             throw invalid_argument("This Book not founded.");
         }
 
         void viewBooks(){
             for(auto& b: books){
-                cout << "Book: " << b->getTitle() << endl;
-                if(b->getType() == "Paper"){
-                    cout << "Stock: " << dynamic_cast<PhysicalBook *>(b)->getStock() << endl;
+                cout << "Book: " << b.second->getTitle() << endl;
+                if(b.second->getType() == "Paper"){
+                    cout << "Stock: " << dynamic_cast<PhysicalBook *>(b.second)->getStock() << endl;
                 }
             }
         }
 
         void removeBook(int ispn){
             int i = 0;
-            for(auto& b: books){
-                if(b->getIspn() == ispn){
-                    cout << "Deleting Book: " << b->getTitle()  << endl;
-                    books.erase(books.begin() + i);
-                }
-            }
+            cout << "Deleting Book: " << books[ispn]->getTitle()  << endl;
+            delete books[ispn];
         }
 };
 
