@@ -1,3 +1,20 @@
+# 📚 C++ Bookstore Management System
+
+A **C++ object-oriented bookstore management application** that provides:  
+- 📦 **Inventory tracking**  
+- 📖 **Multiple book formats** (eBooks, printed books, demo books)  
+- 💳 **Purchase processing**  
+- 🚚 **Shipping services** (physical delivery & email distribution)  
+
+The system is built using **abstraction, inheritance, and polymorphism**, ensuring **scalability, maintainability, and clean design principles**.  
+
+---
+
+## ⚙️ Data Structures Used
+- **Hash Table (`std::map`)** → for efficient book inventory management  
+- **Queue (`std::queue`)** → for handling order processing and shipping sequence  
+
+---
 ## Books object-oriented bookstore hierarchy:
                             ┌────────────────────────┐
                             │      Book              │ (abstract)
@@ -109,8 +126,8 @@ class EmailService -> ShippingService:
 # ------------------------------
 
 class BookStore:
-    books: vector<Book*>
-    shippingService: ShippingService*
+    books: hash table
+    shippingService: queue
 
     addPaperBook(string _title, int _publishYear, float _price, int _stock)
     addEBook(string _title, int _publishYear, float _price, string _fileType)
